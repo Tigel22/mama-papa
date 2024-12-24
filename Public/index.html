@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .upload-container, .beat-list {
+            background: #fff;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        .upload-container h1, .beat-list h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .upload-container label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .upload-container input, .upload-container textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .upload-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .beat-item {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .beat-item audio {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1>Upload Your Beat</h1>
+        <form id="uploadForm">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" placeholder="Enter beat title" required>
+            <label for="description">Description</label>
+            <textarea id="description" name="description" placeholder="Enter beat description" rows="4" required></textarea>
+            <label for="beat">Beat File</label>
+            <input type="file" id="beat" name="beat" accept="audio/*" required>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+
+    <div class="beat-list" id="beatList">
+        <h2>Available Beats</h2>
+    </div>
+
+    <script>
+        async function fetchBeats() {
+            const response = await fetch('/api/beats');
+            const beats = await response.json();
+            const beatList = document.getElementById('beatList');
+            beatList.innerHTML = '<h2>Available Beats</h2>';
+            beats.forEach(beat => {
+                const beatItem = document.createElement('div');
+                beatItem.classList.add('beat-item');
+                beatItem.innerHTML = `
+                    <h3>${beat.title}</h3>
+                    <p>${beat.description}</p>
+                    <audio controls>
+                        <source src="${beat.fileUrl}" type="audio/mpeg">
+                        Your browser does not support the audio tag.
+                    </audio>
+                `;
+                beatList.appendChild(beatItem);
+            });
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            if (response.ok) {
+                alert('Beat uploaded successfully!');
+                fetchBeats();
+            } else {
+                alert('Failed to upload beat.');
+            }
+        });
+
+        // Load beats on page load
+        fetchBeats();
+    </script>
+</body>
+</html>
